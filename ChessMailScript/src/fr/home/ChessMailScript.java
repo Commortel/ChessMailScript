@@ -25,7 +25,7 @@ public class ChessMailScript {
 
     public static final String URL_CHESS_ROOT = "http://echecs.asso.fr";
     public static final String URL_CHESS_CLUBS = URL_CHESS_ROOT + "/ListeClubs.aspx?Action=CLUBCOMITE&ComiteRef=";
-    
+
     public static final String TAG_TABLE_PAGE = "TablePage";
     public static final String TAG_LIST_LINK = "lien_liste";
 
@@ -34,26 +34,29 @@ public class ChessMailScript {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
-        Department d_67 = getDepartmentWithClub(67, "Bas-Rhin");
-        
-        for (Club c : d_67.getClubs()) {
-            System.out.println(c.getName());
-            System.out.println("DIRIGEANTS");
-            for (String mail_leader : c.getLeaders()) {
-                System.out.println(mail_leader);
-            }
-            System.out.println("JOUEURS");
-            for (String mail_player : c.getPlayers()) {
-                System.out.println(mail_player);
+        List<Department> departments = new ArrayList<>();
+        departments.add(getDepartmentWithClub(67, "Bas-Rhin"));
+        departments.add(getDepartmentWithClub(68, "Haut-Rhin"));
+        departments.add(getDepartmentWithClub(88, "Vosges"));
+        departments.add(getDepartmentWithClub(90, "Territoire de Belfort"));
+        departments.add(getDepartmentWithClub(54, "Meurthe-et-Moselle"));
+        departments.add(getDepartmentWithClub(70, "Haute-Saône"));
+
+        for (Department department : departments) {
+            for (Club c : department.getClubs()) {
+                System.out.println(c.getName());
+                for (String mail_leader : c.getLeaders()) {
+                    System.out.println(mail_leader);
+                }
             }
         }
-        
+
     }
-    
+
     public static Department getDepartmentWithClub(int departmentNumber, String departmentName) throws IOException {
         Department newDepartment = new Department(departmentNumber, departmentName);
         Document doc = Jsoup.connect(URL_CHESS_CLUBS + departmentNumber).get();
-        
+
         Element content = doc.getElementById(TAG_TABLE_PAGE);
         Elements ref_clubs = content.getElementsByClass(TAG_LIST_LINK);
 
@@ -69,22 +72,24 @@ public class ChessMailScript {
             c.setName(name.text());
             Element sheet_content = sheet.getElementById("ctl00_ContentPlaceHolderMain_TableClub");
             Elements sheet_mails = sheet_content.getElementsByClass("lien_texte");
-            
+
             sheet_mails.stream()
                     .map((sheet_mail) -> sheet_mail.attr("href"))
                     .filter((mail_str) -> (mail_str.startsWith("mailto")))
-                    .forEach((mail_str) -> { c.getLeaders().add(mail_str.substring(7));
-            });
+                    .forEach((mail_str) -> {
+                        c.getLeaders().add(mail_str.substring(7));
+                    });
 
-            String link_players = sheet_content.getElementById("ctl00_ContentPlaceHolderMain_LinkJoueurs").attr("href");
-            Document players_sheet = Jsoup.connect(URL_CHESS_ROOT + "/" + link_players).get();
+            c.setRef(sheet_content.getElementById("ctl00_ContentPlaceHolderMain_LinkJoueurs").attr("href"));
+            Document players_sheet = Jsoup.connect(URL_CHESS_ROOT + "/" + c.getRef()).get();
             Elements players_mails = players_sheet.getElementsByClass("lien_texte");
-            
+
             players_mails.stream()
                     .map((sheet_mail) -> sheet_mail.attr("href"))
                     .filter((mail_str) -> (mail_str.startsWith("mailto")))
-                    .forEach((mail_str) -> { c.getPlayers().add(mail_str.substring(7));
-            });
+                    .forEach((mail_str) -> {
+                        c.getPlayers().add(mail_str.substring(7));
+                    });
             newDepartment.getClubs().add(c);
         }
         return newDepartment;

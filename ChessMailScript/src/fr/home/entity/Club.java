@@ -10,6 +10,7 @@ import java.util.Set;
 public class Club {
     
     private String name;
+    private String ref;
     private final Set<String> players;
     private final Set<String> leaders;
 
@@ -24,6 +25,14 @@ public class Club {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getRef() {
+        return ref;
+    }
+
+    public void setRef(String ref) {
+        this.ref = ref;
     }
 
     public Set<String> getPlayers() {
