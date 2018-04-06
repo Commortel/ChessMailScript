@@ -44,9 +44,12 @@ public class ChessMailScript {
 
         for (Department department : departments) {
             for (Club c : department.getClubs()) {
-                System.out.println(c.getName());
+                /*System.out.println(c.getName());*/
                 for (String mail_leader : c.getLeaders()) {
-                    System.out.println(mail_leader);
+                    System.out.println(mail_leader + ";");
+                }
+                for (String players : c.getPlayers()) {
+                    System.out.println(players + ";");
                 }
             }
         }
@@ -57,13 +60,13 @@ public class ChessMailScript {
         Department newDepartment = new Department(departmentNumber, departmentName);
         Document doc = Jsoup.connect(URL_CHESS_CLUBS + departmentNumber).get();
 
-        Element content = doc.getElementById(TAG_TABLE_PAGE);
-        Elements ref_clubs = content.getElementsByClass(TAG_LIST_LINK);
-
+        Elements content = doc.getElementsByClass("page-mid");
+        Elements lienClub = content.get(0).getElementsByAttributeValueContaining("href", "FicheClub");
+        
         List<String> clubs = new ArrayList<>();
-        ref_clubs.stream().forEach((club) -> {
-            clubs.add(club.attr("href"));
-        });
+        for (Element row : lienClub) {
+            clubs.add(row.attr("href"));
+        }
 
         for (String club : clubs) {
             Club c = new Club();
